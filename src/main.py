@@ -4,13 +4,17 @@ from langchain_core.messages import HumanMessage
 from src.config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
 
-def get_response(prompt, top_k):
+def get_response(prompt, candidate_count=1):
+    if candidate_count != 1:
+        raise ValueError(
+            "This experiment currently supports candidate_count=1 only."
+        )
+
     llm = ChatOpenAI(
         model=OPENROUTER_MODEL,
         api_key=OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
-        temperature=0,
-        extra_body={"top_k": top_k}
+        temperature=0
     )
 
     return llm.invoke([HumanMessage(content=prompt)])
@@ -18,13 +22,9 @@ def get_response(prompt, top_k):
 
 prompt = "Explain XGBoost and Random Forest with real-life use cases."
 
-for k in [1, 4, 16, 32, 40]:
-    print(f"\n--- Top K: {k} ---")
+response = get_response(prompt, candidate_count=1)
 
-    try:
-        response = get_response(prompt, k)
-        print(response.content)
-        print("\nToken Usage:", response.usage_metadata)
-
-    except Exception as e:
-        print(f"Skipped due to error: {e}")
+print("Candidate Count: 1")
+print(response.content)
+print("\nToken Usage:")
+print(response.usage_metadata)
