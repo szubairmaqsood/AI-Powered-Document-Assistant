@@ -1,41 +1,30 @@
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage
 from src.config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
 
-def get_response(messages, max_output_tokens):
+def get_response(prompt, top_k):
     llm = ChatOpenAI(
         model=OPENROUTER_MODEL,
         api_key=OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
         temperature=0,
-        max_tokens=max_output_tokens
+        extra_body={"top_k": top_k}
     )
 
-    return llm.invoke(messages)
+    return llm.invoke([HumanMessage(content=prompt)])
 
 
-chat_history = []
+prompt = "Explain XGBoost and Random Forest with real-life use cases."
 
-query = "Explain XGBoost and Random Forest with real-life use cases."
-
-for max_output_tokens in [100, 300, 700]:
-    print(f"\n--- Max Output Tokens: {max_output_tokens} ---")
-
-    chat_history.append(HumanMessage(content=query))
+for k in [1, 4, 16, 32, 40]:
+    print(f"\n--- Top K: {k} ---")
 
     try:
-        response = get_response(chat_history, max_output_tokens)
+        response = get_response(prompt, k)
         print(response.content)
-        print("Token Usage:", response.usage_metadata)
-
-        chat_history.append(AIMessage(content=response.content))
+        print("\nToken Usage:", response.usage_metadata)
 
     except Exception as e:
-        chat_history.pop()
         print(f"Skipped due to error: {e}")
-
-print("\n--- Chat History ---")
-for message in chat_history:
-    print(f"{type(message).__name__}: {message.content}\n")
