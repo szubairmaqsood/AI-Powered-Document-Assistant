@@ -3,6 +3,29 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from src.config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
+
+def generate_response(prompt, temperature):
+    llm = ChatOpenAI(
+        model=OPENROUTER_MODEL,
+        api_key=OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+        temperature=temperature
+    )
+
+    response = llm.invoke(prompt)
+    return response
+
+
+prompt = "Write a short, creative paragraph about artificial intelligence."
+
+for temperature in [0.0, 0.25, 0.5, 0.75, 1.0]:
+    response = generate_response(prompt, temperature)
+
+    print(f"\nTemperature: {temperature}")
+    print(response.content)
+    print("Token Usage:", response.usage_metadata)
+
+
 llm = ChatOpenAI(
     model=OPENROUTER_MODEL,
     api_key=OPENROUTER_API_KEY,
@@ -18,7 +41,7 @@ chat_history.append(HumanMessage(content=query))
 response = llm.invoke(chat_history)
 chat_history.append(AIMessage(content=response.content))
 
-print("AI Response:")
+print("\nAI Response:")
 print(response.content)
 
 print("\nChat History:")
