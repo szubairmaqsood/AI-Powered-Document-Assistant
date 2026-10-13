@@ -4,62 +4,38 @@ from langchain_core.messages import HumanMessage, AIMessage
 from src.config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
 
-def generate_response(prompt, temperature):
+def get_response(messages, max_output_tokens):
     llm = ChatOpenAI(
         model=OPENROUTER_MODEL,
         api_key=OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
-        temperature=temperature
+        temperature=0,
+        max_tokens=max_output_tokens
     )
 
-    response = llm.invoke(prompt)
-    return response
+    return llm.invoke(messages)
 
-
-prompt = "Write a short, creative paragraph about artificial intelligence."
-
-for temperature in [0.0, 0.25, 0.5, 0.75, 1.0]:
-    response = generate_response(prompt, temperature)
-
-    print(f"\nTemperature: {temperature}")
-    print(response.content)
-    print("Token Usage:", response.usage_metadata)
-
-
-llm = ChatOpenAI(
-    model=OPENROUTER_MODEL,
-    api_key=OPENROUTER_API_KEY,
-    base_url="https://openrouter.ai/api/v1",
-    temperature=0
-)
 
 chat_history = []
 
-query = "Hi! Give me a recipe to make a Margherita pizza from scratch."
+query = "Explain XGBoost and Random Forest with real-life use cases."
 
-chat_history.append(HumanMessage(content=query))
-response = llm.invoke(chat_history)
-chat_history.append(AIMessage(content=response.content))
+for max_output_tokens in [100, 300, 700]:
+    print(f"\n--- Max Output Tokens: {max_output_tokens} ---")
 
-print("\nAI Response:")
-print(response.content)
+    chat_history.append(HumanMessage(content=query))
 
-print("\nChat History:")
+    try:
+        response = get_response(chat_history, max_output_tokens)
+        print(response.content)
+        print("Token Usage:", response.usage_metadata)
+
+        chat_history.append(AIMessage(content=response.content))
+
+    except Exception as e:
+        chat_history.pop()
+        print(f"Skipped due to error: {e}")
+
+print("\n--- Chat History ---")
 for message in chat_history:
-    print(message)
-    print()
-
-print("Token Usage:")
-print(response.usage_metadata)
-
-token_query = "Now please help me find the nearest supermarket from where I can buy the ingredients."
-
-chat_history.append(HumanMessage(content=token_query))
-token_response = llm.invoke(chat_history)
-chat_history.append(AIMessage(content=token_response.content))
-
-print("\nFollow-up Response:")
-print(token_response.content)
-
-print("\nFollow-up Token Usage:")
-print(token_response.usage_metadata)
+    print(f"{type(message).__name__}: {message.content}\n")
