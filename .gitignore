@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Python virtual environment
+.venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Local vector database
+chroma_db/
+
+# Editor and OS files
+.vscode/
+.DS_Store
